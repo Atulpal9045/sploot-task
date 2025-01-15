@@ -90,12 +90,11 @@ export default function Blogs({ initialBlogs }) {
 // ISR (Revalidate every hour) for Blogs page
 export async function getStaticProps() {
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/blogs`);
+    const res = await fetch(`${process.env.LIVE_URL}/blogs`);
     if (!res.ok) {
       throw new Error(`API responded with status ${res.status}`);
     }
     const data = await res.json();
-    console.log('res---', data)
     return {
       props: {
         initialBlogs: data.data || [],
