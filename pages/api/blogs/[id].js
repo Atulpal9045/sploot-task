@@ -1,4 +1,5 @@
 import Blog from "../models/Blog";
+import User from "../models/User";
 import connectDB from "../utils/db";
 
 export default async function handler(req, res) {
@@ -10,7 +11,10 @@ export default async function handler(req, res) {
   console.log('method---', method, id);
   if (method === 'GET') {
     try {
-      const blog = await Blog.findById(id).populate('createdBy', 'name email');
+      const blog = await Blog.findById(id)
+      const user = await User.findById(blog.createdBy)
+      blog["email"] = user?.email
+      blog["name"] = user?.name
       res.status(200).json({ statusCode: 200, data: blog });
     } catch (error) {
       res.status(500).json({ statusCode: 500, message: error?.message || 'Internal Server Error!' });
