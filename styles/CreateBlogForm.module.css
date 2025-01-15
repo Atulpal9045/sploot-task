@@ -91,4 +91,23 @@
   .create-blog-button:hover {
     background-color: #0056b3;
   }
+
+  /* Add to CreateBlogForm.module.css */
+.submitButton {
+  padding: 10px 20px;
+  background-color: #3498db;
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.submitButton:disabled {
+  background-color: #bdc3c7;
+}
+
+.submitButton.loading {
+  background-color: #f39c12; /* Change color when loading */
+}
+
   

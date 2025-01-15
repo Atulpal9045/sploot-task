@@ -2,25 +2,43 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import styles from '../../styles/Blogs.module.css'; // Importing CSS for styling
 import Header from '@/components/Header';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css'; // Import styles for react-toastify
 
 export default function Blog() {
   const [blog, setBlog] = useState(null);
+  const [loading, setLoading] = useState(false); // Full-screen loader
   const router = useRouter();
   const { blogId } = router.query;
 
   useEffect(() => {
     if (!blogId) return;
     const fetchBlog = async () => {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/blogs/${blogId}`);
-      const data = await response.json();
-      if (response.ok) {
-        setBlog(data.data);
-      } else {
-        console.error('Failed to fetch blog');
+      setLoading(true); // Show loader while fetching blog
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/blogs/${blogId}`);
+        const data = await response.json();
+        if (response.ok) {
+          setBlog(data.data);
+        } else {
+          toast.error('Failed to fetch the blog');
+        }
+      } catch (error) {
+        toast.error('Failed to fetch the blog');
+      } finally {
+        setLoading(false); // Hide loader after fetch
       }
     };
     fetchBlog();
   }, [blogId]);
+
+  if (loading) {
+    return (
+      <div className={styles.loaderContainer}>
+        <div className={styles.loader}></div>
+      </div>
+    );
+  }
 
   if (!blog) return <div className={styles.loading}>Loading...</div>;
 
@@ -53,6 +71,9 @@ export default function Blog() {
           </div>
         </div>
       </div>
+
+      {/* Toast container */}
+      <ToastContainer />
     </div>
   );
 }

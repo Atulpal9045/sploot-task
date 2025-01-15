@@ -3,6 +3,8 @@ import { useRouter } from 'next/router';
 import Header from '../../components/Header';
 import BlogCard from '../../components/BlogCard';
 import CreateBlogForm from '@/components/BlogPopupForm';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css'; // Import styles for react-toastify
 
 export default function Blogs({ initialBlogs }) {
   const [blogs, setBlogs] = useState(initialBlogs);
@@ -13,16 +15,24 @@ export default function Blogs({ initialBlogs }) {
   ]);
   const [selectedCategory, setSelectedCategory] = useState('Tech');
   const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [loading, setLoading] = useState(false); // Full-screen loader
   const router = useRouter();
 
   // Fetch blogs from the API (client-side)
   const fetchBlogs = async (category) => {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/blogs?category=${category}`);
-    const data = await response.json();
-    if (response.ok) {
-      setBlogs(data.data);
-    } else {
-      console.error('Failed to fetch blogs');
+    setLoading(true); // Show loader while fetching
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/blogs?category=${category}`);
+      const data = await response.json();
+      if (response.ok) {
+        setBlogs(data.data);
+      } else {
+        toast.error('Failed to fetch blogs');
+      }
+    } catch (error) {
+      toast.error('Failed to fetch blogs');
+    } finally {
+      setLoading(false); // Hide loader after fetch
     }
   };
 
@@ -39,31 +49,33 @@ export default function Blogs({ initialBlogs }) {
       <Header />
       {/* Category selector */}
       <div className="sub-header">
-      <div className="category-selector">
-        {categories.map((category) => (
-          <div className='btn-container'>
-          <button
-            key={category.name}
-            onClick={() => setSelectedCategory(category.name)}
-            className={category.name === selectedCategory ? 'selected' : ''}
-          >
-            <img src={category.imageUrl} alt={category.name} width={40} height={40}/>
-            <span>{category.name}</span>
-            
-          </button>
-          </div>
-        ))}
-      </div>
+        <div className="category-selector">
+          {categories.map((category) => (
+            <div className='btn-container' key={category.name}>
+              <button
+                onClick={() => setSelectedCategory(category.name)}
+                className={category.name === selectedCategory ? 'selected' : ''}
+              >
+                <img src={category.imageUrl} alt={category.name} width={40} height={40} />
+                <span>{category.name}</span>
+              </button>
+            </div>
+          ))}
+        </div>
 
-      <button className="create-blog-btn" onClick={handleCreateBlogClick}>Create Blog</button>
+        <button className="create-blog-btn" onClick={handleCreateBlogClick}>Create Blog</button>
       </div>
+      
       {/* Blog list */}
-      {
-          blogs.length == 0 ? 
-          <div className="empty-blog">
-            <img src="/images/nocotent.jpg"/> 
-          </div>
-          :
+      {loading ? (
+        <div className="loaderContainer">
+          <div className="loader"></div>
+        </div>
+      ) : blogs.length === 0 ? (
+        <div className="empty-blog">
+          <img src="/images/nocotent.jpg" alt="No content" />
+        </div>
+      ) : (
         <div className="blog-list">
           {blogs
             .filter((blog) => blog.category === selectedCategory)
@@ -71,18 +83,20 @@ export default function Blogs({ initialBlogs }) {
               <BlogCard key={blog._id} blog={blog} />
             ))}
         </div>
-      }
-      
+      )}
 
       {/* Popup for creating a blog */}
       {isPopupOpen && (
         <div className="popup">
           <div className="popup-content">
             <h2>Create Blog</h2>
-            <CreateBlogForm closePopup={()=> setIsPopupOpen(false)}/>
+            <CreateBlogForm closePopup={() => setIsPopupOpen(false)} />
           </div>
         </div>
       )}
+
+      {/* Toast container */}
+      <ToastContainer />
     </div>
   );
 }
@@ -111,4 +125,3 @@ export async function getStaticProps() {
     };
   }
 }
-
